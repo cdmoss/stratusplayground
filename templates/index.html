@@ -1,0 +1,48 @@
+{% load django_glue %}
+
+<!doctype html>
+
+<html lang="en">
+<body>
+    <div class="container">
+        <div class="row">
+            <h3>Generate a customer</h3>
+            <p>Enter a prompt to generate a customer</p>
+        </div>
+        <div class="row">
+            <form method="POST" action="{% url 'edit_customer' %}" x-data="{
+                prompt: ''
+            }">
+                {% csrf_token %}
+                <input type="text" name="prompt" placeholder="Prompt" x-model="prompt">
+                <button type="submit">Generate</button>
+            </form>
+        </div>
+        <!-- Customer list -->
+        <div class="row" x-data="{
+            customers: [],
+            customer_query_set: new QuerySetGlue('customers'),
+            async init() {
+                this.customers = await this.customer_query_set.all()
+            }
+        }">
+            <h3>Customer List</h3>
+            <p>List of customers</p>
+            <ul>
+                <template x-for="customer in customers">
+                    <li><a x-data="{
+                        customer_url: '/edit/?customer_id=' + customer.id,
+                        customer_name: customer.first_name + ' ' + customer.last_name
+                    }" :href="customer_url" x-text="customer_name"></a></li>
+                </template>
+            </ul>
+        </div>
+    </div>
+
+    {% glue_init %}
+    {% glue_bootstrap_js %}
+    {% glue_alpine_js %}
+
+</body>
+
+</html>
