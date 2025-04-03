@@ -1,0 +1,12 @@
+db.*
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-lock
+*.sqlite3-trace
+*.sqlite3-trace-lock
+*.sqlite3-trace-lock-timeout
+*.sqlite3-trace-lock-timeout-timeout
+
+**/__pycache__/**
+**/__pycache__
+

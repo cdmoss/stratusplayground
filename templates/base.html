@@ -1,0 +1,24 @@
+{% load static %}
+{% load django_glue %}
+
+<!doctype html>
+
+<html lang="en">
+    <title>Stratus Test Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% glue_bootstrap_css %}
+<body>
+    <div class="container m-5">
+        {% block page_title %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% glue_init %}
+    {% glue_bootstrap_js %}
+    {% glue_alpine_js %}
+</body>
+</html>

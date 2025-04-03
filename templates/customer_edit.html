@@ -1,17 +1,25 @@
-{% load django_glue %}
+{% extends "base.html" %}
 
-<!doctype html>
+{% block page_title %}
+    <h2>Edit Customer</h2>
+{% endblock %}
 
-<html lang="en">
-<body>
+{% block content %}
 
     <!-- Your Content Above the Glue Initialization-->
+    
 
     <div x-data="{
         customer: new ModelObjectGlue('customer'),
+        customer_fields: [],
         saved: false,
         async init() {
             await this.customer.get()
+            window.addEventListener('django-glue-response-event', async (event) => {
+                if (event.detail.response_type === 'success' && event.detail.message_body.toLowerCase().includes('deleted')) {
+                    window.location.href = '/'
+                }
+            })
         },
         save() {
             this.customer.update()
@@ -19,70 +27,41 @@
             setTimeout(() => {
                 this.saved = false
             }, 3000)
-        }
+        },
     }">
-        <form>
-            <div class="row mb-2">
-                <label class="col-md-4" for="first_name">First Name</label>
-                <input class="col-md-8" type="text" id="first_name" x-model="customer.first_name" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="last_name">Last Name</label>
-                <input class="col-md-8" type="text" id="last_name" x-model="customer.last_name" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="email">Email</label>
-                <input class="col-md-8" type="text" id="email" x-model="customer.email" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="phone">Phone</label>
-                <input class="col-md-8" type="text" id="phone" x-model="customer.phone" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="address">Address</label>
-                <input class="col-md-8" type="text" id="address" x-model="customer.address" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="city">City</label>
-                <input class="col-md-8" type="text" id="city" x-model="customer.city" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="state">State/Province</label>
-                <input class="col-md-8" type="text" id="state" x-model="customer.state" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="zip_postal">Zip/Postal</label>
-                <input class="col-md-8" type="text" id="zip_postal" x-model="customer.zip_postal" />
-            </div>
-            <div class="row mb-2">
-                <label class="col-md-4" for="country">Country</label>
-                <input class="col-md-8" type="text" id="country" x-model="customer.country" />
-            </div>
-            
-        </form>
-        <div class="row">
+        <div class="form-group">
+            <label for="first_name" class="form-label">First Name</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.first_name" x-model="customer.first_name" />
+            <label for="last_name" class="form-label">Last Name</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.last_name" x-model="customer.last_name" />
+            <label for="email" class="form-label">Email</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.email" x-model="customer.email" />
+            <label for="address" class="form-label">Address</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.address" x-model="customer.address" />
+            <label for="city" class="form-label">City</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.city" x-model="customer.city" />
+            <label for="state" class="form-label">State</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.state" x-model="customer.state" />
+            <label for="zip_postal" class="form-label">Zip/Postal</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.zip_postal" x-model="customer.zip_code" />
+            <label for="country" class="form-label">Country</label>
+            <input class="form-control mb-3" type="text" x-bind:id="customer.country" x-model="customer.country" />
+            <a href="/" class="btn btn-secondary">Back</a>
+            <button class="btn btn-danger" x-on:click="customer.delete()">Delete</button>
             <button class="btn btn-primary" x-on:click="save()">Save</button>
         </div>
-        <!-- Save notification (show only for 3 seconds) -->
-        <div class="row">
-            <div class="col-md-12" x-show="saved">
-                <div class="alert alert-success">
-                    Customer saved successfully
-                </div>
+            
+        <div class="form-group" x-show="saved">
+            <br>
+            <div class="alert alert-success">
+                Customer saved successfully
             </div>
         </div>
+        <br>
         <!-- Back button -->
         <div class="row"> 
-            <a href="/" class="btn btn-secondary">Back</a>
+            
         </div>
     </div>
 
-    {% glue_init %}
-
-    {% glue_bootstrap_js %}
-
-    {% glue_alpine_js %}
-
-</body>
-
-</html>
+{% endblock %}

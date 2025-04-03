@@ -1,48 +1,75 @@
-{% load django_glue %}
+{% extends "base.html" %}
 
-<!doctype html>
+{% block page_title %}
+    <h2>Generate a customer</h2>
+{% endblock %}
 
-<html lang="en">
-<body>
-    <div class="container">
-        <div class="row">
-            <h3>Generate a customer</h3>
-            <p>Enter a prompt to generate a customer</p>
-        </div>
-        <div class="row">
-            <form method="POST" action="{% url 'edit_customer' %}" x-data="{
-                prompt: ''
-            }">
-                {% csrf_token %}
-                <input type="text" name="prompt" placeholder="Prompt" x-model="prompt">
-                <button type="submit">Generate</button>
-            </form>
-        </div>
-        <!-- Customer list -->
-        <div class="row" x-data="{
-            customers: [],
-            customer_query_set: new QuerySetGlue('customers'),
-            async init() {
-                this.customers = await this.customer_query_set.all()
-            }
+{% block content %}
+    <div class="row">
+        <form method="POST" action="{% url 'generate_customer' %}" x-data="{
+            prompt: ''
         }">
-            <h3>Customer List</h3>
-            <p>List of customers</p>
-            <ul>
-                <template x-for="customer in customers">
-                    <li><a x-data="{
-                        customer_url: '/edit/?customer_id=' + customer.id,
-                        customer_name: customer.first_name + ' ' + customer.last_name
-                    }" :href="customer_url" x-text="customer_name"></a></li>
-                </template>
-            </ul>
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="prompt">Enter a prompt to generate a customer</label>
+                <input class="form-control mt-2" type="text" name="prompt" placeholder="Prompt" x-model="prompt">
+            </div>
+            <button class="btn btn-primary mt-2" type="submit">Generate</button>
+        </form>
+    </div>
+    <hr>
+    <div class="row" x-data="{
+        alert: {
+            type: '',
+            text: ''
+        },
+        customers: [],
+        customer_query_set: new QuerySetGlue('customers'),
+        async init() {
+            this.customers = await this.customer_query_set.all()
+            this.customers.sort((a, b) => b.id - a.id)
+             // subscribe to the django-glue-response-event
+            window.addEventListener('django-glue-response-event', async (event) => {
+                if (event.detail.response_type === 'success' && event.detail.message_body.toLowerCase().includes('deleted')) {
+                    this.customers = await this.customer_query_set.all()
+                    this.customers.sort((a, b) => b.id - a.id)
+                }
+
+                this.alert.type = event.detail.response_type
+                this.alert.text = 'Successfully deleted customer'
+                setTimeout(() => {
+                    this.alert.type = ''
+                    this.alert.text = ''
+                }, 3000)
+            })
+        },
+        async delete_customer(e, customer_id) {
+            e.preventDefault()
+            this.customer_query_set.delete([customer_id])
+        }
+    }">
+        <h4>Customer List</h4>
+        <div class="list-group">
+            <template x-for="customer in customers">
+                <a class="list-group-item" x-data="{
+                    hover: false,
+                    customer_url: '/edit/?customer_id=' + customer.id,
+                    customer_name: customer.first_name + ' | ' + customer.last_name + ' | ' + customer.email + ' | ' + customer.phone + ' | ' + customer.address + ' | ' + customer.city + ' | ' + customer.state + ' | ' + customer.zip_code + ' | ' + customer.country
+                }" :href="customer_url" @mouseenter="$el.style.backgroundColor = '#F5F5F5'" @mouseleave="$el.style.backgroundColor = 'white'">
+                    <div class="float-start">
+                        <h5 x-text="customer_name"></h5>
+                    </div>
+                    <br>
+                    <div class="float-end">
+                        <button class="btn btn-danger" @click="await delete_customer($event,customer.id)">Delete</button>
+                    </div>
+                </a>
+            </template>
+        </div>
+        <div x-show="alert.type !== ''">
+            <br>
+            <div class="alert alert-success" x-show="alert.type === 'success'" x-text="alert.text"></div>
+            <div class="alert alert-danger" x-show="alert.type === 'error'" x-text="alert.text"></div>
         </div>
     </div>
-
-    {% glue_init %}
-    {% glue_bootstrap_js %}
-    {% glue_alpine_js %}
-
-</body>
-
-</html>
+{% endblock %}
